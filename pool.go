@@ -195,7 +195,7 @@ func (p *Pool) Close() {
 	close(p.conns)
 
 	for conn := range p.conns {
-		if conn != nil {
+		if conn == nil {
 			continue
 		}
 

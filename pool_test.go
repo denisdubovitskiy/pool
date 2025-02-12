@@ -60,7 +60,7 @@ func TestPool(t *testing.T) {
 				assert.NoError(t, err)
 				assert.Equal(t, len(recv), n)
 
-				pool.Put(conn, assert.AnError)
+				pool.Put(conn, nil)
 			}()
 		}
 
