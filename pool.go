@@ -117,6 +117,10 @@ func (p *Pool) dial() (*Conn, error) {
 }
 
 func (p *Pool) Get(ctx context.Context) (*Conn, error) {
+	if p.closing.Load() {
+		return nil, ErrPoolClosed
+	}
+
 	start := time.Now()
 
 	for !p.closing.Load() {
@@ -129,6 +133,10 @@ func (p *Pool) Get(ctx context.Context) (*Conn, error) {
 			)
 
 		case conn := <-p.conns:
+			if conn == nil {
+				return nil, ErrPoolClosed
+			}
+
 			connAge := conn.age()
 
 			if p.maxConnAge > 0 && connAge > p.maxConnAge {
@@ -187,6 +195,10 @@ func (p *Pool) Close() {
 	close(p.conns)
 
 	for conn := range p.conns {
+		if conn != nil {
+			continue
+		}
+
 		p.hooks.OnClose(
 			conn.age(),
 			CloseReasonPoolClosing,
